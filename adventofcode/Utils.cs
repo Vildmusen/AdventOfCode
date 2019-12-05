@@ -7,12 +7,12 @@ namespace adventofcode
     {
         public static string[] ReadFromFile(string day)
         {
-            return File.ReadAllText("C:\\Users\\Vildmusen\\Desktop\\day"+day+"input.txt").Split(',');
+            return File.ReadAllText("C:\\Users\\Vildmusen\\source\\repos\\adventofcode\\resources\\day" + day+"input.txt").Split(',');
         }
 
         public static string[] ReadFromFileV2(string day)
         {
-            return File.ReadAllText("C:\\Users\\Vildmusen\\Desktop\\day" + day + "input.txt").Split('\n');
+            return File.ReadAllText("C:\\Users\\Vildmusen\\source\\repos\\adventofcode\\resources\\day" + day + "input.txt").Split('\n');
         }
 
         public static int[] StringToIntList(string[] list)
