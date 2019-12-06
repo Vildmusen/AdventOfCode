@@ -261,7 +261,4 @@ __pycache__/
 *.pyc
 
 # Input files
-day1input.txt
-day2input.txt
-day3input.txt
-day5input.txt
+*.txt

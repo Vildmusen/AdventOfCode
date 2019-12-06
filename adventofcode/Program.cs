@@ -11,7 +11,7 @@ namespace adventofcode
     {
         static void Main(string[] args)
         {
-            Day5 d = new Day5();
+            Day6 d = new Day6();
             d.Start();
             Console.ReadLine();
         }
