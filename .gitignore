@@ -259,3 +259,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Input files
+day1input.txt
+day2input.txt
+day3input.txt
+day5input.txt
