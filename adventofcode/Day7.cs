@@ -20,11 +20,68 @@ namespace adventofcode
             int[] phase1 = new int[] { 0,1,2,3,4};
             permutations1 = GetPermutations(phase1);
 
-            foreach (int[] perm in permutations1)
+            //foreach (int[] perm in permutations1)
+            //{
+            //    CalculateThrusters(perm);
+            //}
+            //Console.WriteLine(max);
+
+            int[] phase2 = new int[] { 5,6,7,8,9 };
+            permutations2 = GetPermutations(phase2);
+
+            foreach(int[] permutation in permutations2)
             {
-                CalculateThrusters(perm);
+                int output = 0;
+                bool isDone = false;
+                bool FirstRound = true;
+                while (!isDone)
+                {
+                    if (FirstRound)
+                    {
+                        computers[0].name = 0;
+                        computers[0].Run(new int[] { permutation[0], output });
+                        output = computers[0].ReadOutput();
+                        computers[1].name = 1;
+                        computers[1].Run(new int[] { permutation[1], output });
+                        output = computers[1].ReadOutput();
+                        computers[2].name = 2;
+                        computers[2].Run(new int[] { permutation[2], output });
+                        output = computers[2].ReadOutput();
+                        computers[3].name = 3;
+                        computers[3].Run(new int[] { permutation[3], output });
+                        output = computers[3].ReadOutput();
+                        computers[4].name = 4;
+                        computers[4].Run(new int[] { permutation[4], output });
+                        output = computers[4].ReadOutput();
+                        FirstRound = false;
+                    }
+                    else
+                    {
+                        computers[0].Run(new int[] { output });
+                        output = computers[0].ReadOutput();
+                        computers[1].Run(new int[] { output });
+                        output = computers[1].ReadOutput();
+                        computers[2].Run(new int[] { output });
+                        output = computers[2].ReadOutput();
+                        computers[3].Run(new int[] { output });
+                        output = computers[3].ReadOutput();
+                        computers[4].Run(new int[] { output });
+                        output = computers[4].ReadOutput();
+                    }
+                    if(computers.All(x => x.exitCode == 99))
+                    {
+                        isDone = true;
+                        output = computers[4].ReadOutput();
+                        //Console.WriteLine("Done with permutation " + permutation[0] + " " + permutation[1] + " " + permutation[2] + " " + permutation[3] + " " + permutation[4] + " - Output is " + output);
+                    }
+                }
+                foreach(Computer c in computers)
+                {
+                    c.Reset();
+                }
+                max = output > max ? output : max;
             }
-            Console.WriteLine(max);
+            Console.WriteLine("Max is: " + max);
         }
 
         private void Setup()
@@ -33,6 +90,7 @@ namespace adventofcode
             foreach(Computer c in computers)
             {
                 c.Start("7");
+                c.Reset();
             }
             permutations1 = new List<int[]>();
             permutations2 = new List<int[]>();

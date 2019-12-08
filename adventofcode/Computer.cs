@@ -13,6 +13,9 @@ namespace adventofcode
         int pointer;
         int[] inputs;
         int output;
+        int[] outputHistory = new int[0];
+        public int name;
+        public int exitCode;
         bool running = true;
 
         public void Start(string day)
@@ -22,6 +25,7 @@ namespace adventofcode
         public void Reset()
         {
             IntCode = Utils.StringToIntList(file);
+            pointer = 0;
         }
 
         public int ReadOutput()
@@ -41,8 +45,8 @@ namespace adventofcode
         }
         public void Run()
         {
-            pointer = 0;
             running = true;
+            exitCode = 0;
             while (running)
             {
                 int opcode;
@@ -57,8 +61,8 @@ namespace adventofcode
                     opcode = cur;
                     parameters = new int[] { 0,0,0 };
                 }
-                
-                //Console.WriteLine("System: [OPCODE]:{0} [ADRESS]:{1}", opcode, pointer);
+
+                //Console.WriteLine("System[" + name + "]: [OPCODE]:{0} [ADRESS]:{1} [PARAMS]:{2} {3} {4}", opcode, pointer, parameters[0], parameters[1], parameters[2]);
                 switch (opcode)
                 {
                     case 1:
@@ -71,6 +75,7 @@ namespace adventofcode
                         break;
                     case 3:
                         Input();
+                        if(exitCode == 3) { return; }
                         pointer += 2;
                         break;
                     case 4:
@@ -94,6 +99,7 @@ namespace adventofcode
                         pointer += 4;
                         break;
                     case 99:
+                        exitCode = 99;
                         running = false;
                         break;
                     default:
@@ -131,8 +137,16 @@ namespace adventofcode
         private void Output(int[] parameters)
         {
             int[] values = GetValues(parameters);
-            output = values[0];
+            output = IntCode[values[0]];
+            AddHistory(output);
             //Console.WriteLine("System: [OUTPUT]:" + IntCode[values[0]]);
+        }
+
+        private void AddHistory(int output)
+        {
+            List<int> list = outputHistory.ToList();
+            list.Add(output);
+            outputHistory = list.ToArray();
         }
 
         private void Input()
@@ -142,12 +156,13 @@ namespace adventofcode
             {
                 input = inputs[0];
                 inputs = inputs.Skip(1).ToArray();
+                IntCode[IntCode[pointer + 1]] = input;
             } else
             {
-                Console.Write("SYSTEM: [INPUT]: ");
-                input = Int32.Parse(Console.ReadLine());
+                //Console.Write("SYSTEM: [INPUT]: ");
+                //input = Int32.Parse(Console.ReadLine());
+                exitCode = 3;
             }
-            IntCode[IntCode[pointer + 1]] = input;
         }
 
         private void Add(int[] parameters)
@@ -167,7 +182,13 @@ namespace adventofcode
             int[] values = new int[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                values[i] = parameters[i] == 0 ? IntCode[pointer + i + 1] : pointer + i + 1;
+                try
+                {
+                    values[i] = parameters[i] == 0 ? IntCode[pointer + i + 1] : pointer + i + 1;
+                } catch (IndexOutOfRangeException)
+                {
+                    Console.WriteLine("Value was not inside the program code. [INDEX]: {0}", pointer + i + 1);
+                }
             }
             return values;
         }
