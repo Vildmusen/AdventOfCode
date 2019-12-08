@@ -6,22 +6,40 @@ using System.Threading.Tasks;
 
 namespace adventofcode
 {
-    class Day5
+    class Computer
     {
-        string[] input;
+        string[] file;
         int[] IntCode;
         int pointer;
-        int steps = 0;
+        int[] inputs;
+        int output;
         bool running = true;
 
-        public void Start()
+        public void Start(string day)
         {
-            input = Utils.ReadFromFile("5");
-            Reset();
+            file = Utils.ReadFromFile(day);
+        }
+        public void Reset()
+        {
+            IntCode = Utils.StringToIntList(file);
+        }
+
+        public int ReadOutput()
+        {
+            return output;
+        }
+
+        public int ReadValueAt(int address)
+        {
+            return IntCode[address];
+        }
+
+        public void Run(int[] inputs)
+        {
+            this.inputs = inputs;
             Run();
         }
-        
-        private void Run()
+        public void Run()
         {
             pointer = 0;
             running = true;
@@ -40,7 +58,7 @@ namespace adventofcode
                     parameters = new int[] { 0,0,0 };
                 }
                 
-                Console.WriteLine("System: [OPCODE]:{0} [ADRESS]:{1}", opcode, pointer);
+                //Console.WriteLine("System: [OPCODE]:{0} [ADRESS]:{1}", opcode, pointer);
                 switch (opcode)
                 {
                     case 1:
@@ -83,7 +101,6 @@ namespace adventofcode
                         Console.WriteLine("System: [ERROR]: Unknown opcode, exiting");
                         break;
                 }
-                steps++;
             }
         }
 
@@ -114,13 +131,22 @@ namespace adventofcode
         private void Output(int[] parameters)
         {
             int[] values = GetValues(parameters);
-            Console.WriteLine("System: [OUTPUT]:" + IntCode[values[0]]);
+            output = values[0];
+            //Console.WriteLine("System: [OUTPUT]:" + IntCode[values[0]]);
         }
 
         private void Input()
         {
-            Console.Write("SYSTEM: [INPUT]: ");
-            int input = Int32.Parse(Console.ReadLine());
+            int input;
+            if (inputs.Length > 0)
+            {
+                input = inputs[0];
+                inputs = inputs.Skip(1).ToArray();
+            } else
+            {
+                Console.Write("SYSTEM: [INPUT]: ");
+                input = Int32.Parse(Console.ReadLine());
+            }
             IntCode[IntCode[pointer + 1]] = input;
         }
 
@@ -134,16 +160,6 @@ namespace adventofcode
         {
             int[] values = GetValues(parameters);
             IntCode[values[2]] = IntCode[values[1]] * IntCode[values[0]];
-        }
-
-        private void Reset()
-        {
-            IntCode = Utils.StringToIntList(input);
-        }
-
-        private void Replace(int i, int value)
-        {
-            IntCode[i] = value;
         }
 
         public int[] GetValues(int[] parameters)
