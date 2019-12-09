@@ -11,8 +11,9 @@ namespace adventofcode
         string[] file;
         int[] IntCode;
         int pointer;
-        int[] inputs;
         int output;
+        int relativeBase = 0;
+        int[] inputs;
         int[] outputHistory = new int[0];
         public int name;
         public int exitCode;
@@ -98,6 +99,10 @@ namespace adventofcode
                         Equals(parameters);
                         pointer += 4;
                         break;
+                    case 9:
+                        AdjustRelativeBase(parameters);
+                        pointer += 2;
+                        break;
                     case 99:
                         exitCode = 99;
                         running = false;
@@ -108,6 +113,12 @@ namespace adventofcode
                         break;
                 }
             }
+        }
+
+        private void AdjustRelativeBase(int[] parameters)
+        {
+            int[] values = GetValues(parameters);
+            relativeBase = IntCode[values[0]];
         }
 
         private void Equals(int[] parameters)
