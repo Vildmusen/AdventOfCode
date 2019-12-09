@@ -7,7 +7,7 @@ namespace adventofcode
     {
         public static string[] ReadFromFile(string day)
         {
-            return File.ReadAllText("C:\\Users\\vikto\\Documents\\repos\\AdventOfCode\\resources\\day" + day+"input.txt").Split(',');
+            return File.ReadAllText("E:\\source\\adventofcode\\resources\\day" + day+"input.txt").Split(',');
         }
 
         public static string[] ReadFromFileV2(string day)
@@ -20,7 +20,17 @@ namespace adventofcode
             int[] ints = new int[list.Length];
             for (int i = 0; i < list.Length; i++)
             {
-                ints[i] = Int32.Parse(list[i]);
+                ints[i] = int.Parse(list[i]);
+            }
+            return ints;
+        }
+
+        public static long[] StringToLongList(string[] list)
+        {
+            long[] ints = new long[list.Length];
+            for (int i = 0; i < list.Length; i++)
+            {
+                ints[i] = long.Parse(list[i]);
             }
             return ints;
         }

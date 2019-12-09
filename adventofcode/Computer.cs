@@ -9,12 +9,16 @@ namespace adventofcode
     class Computer
     {
         string[] file;
-        int[] IntCode;
+
+        long[] IntCode;
+        long output;
+        long[] outputHistory = new long[0];
+        long[] inputs;
+        
         int pointer;
-        int output;
         int relativeBase = 0;
-        int[] inputs;
-        int[] outputHistory = new int[0];
+        int memSpace = 2000000;
+        
         public int name;
         public int exitCode;
         bool running = true;
@@ -25,21 +29,37 @@ namespace adventofcode
         }
         public void Reset()
         {
-            IntCode = Utils.StringToIntList(file);
+            IntCode = Utils.StringToLongList(file);
+            int mem = memSpace - IntCode.Length;
+            List<long> temp = IntCode.ToList();
+            while (mem > 0)
+            {
+                temp.Add(0);
+                mem--;
+            }
+            IntCode = temp.ToArray();
             pointer = 0;
         }
 
-        public int ReadOutput()
+        public long ReadOutput()
         {
             return output;
         }
 
-        public int ReadValueAt(int address)
+        public void PrintOutPut()
+        {
+            foreach(long l in outputHistory)
+            {
+                Console.Write(l + ": ");
+            }
+        }
+
+        public long ReadValueAt(int address)
         {
             return IntCode[address];
         }
 
-        public void Run(int[] inputs)
+        public void Run(long[] inputs)
         {
             this.inputs = inputs;
             Run();
@@ -52,11 +72,11 @@ namespace adventofcode
             {
                 int opcode;
                 int[] parameters;
-                int cur = IntCode[pointer];
+                int cur = (int) IntCode[pointer];
                 if(cur > 100)
                 {
-                    opcode = IntCode[pointer] % 100;
-                    parameters = new int[] { (IntCode[pointer] / 100) % 10, (IntCode[pointer] / 1000) % 10, (IntCode[pointer] / 10000) % 10};
+                    opcode = (int) IntCode[pointer] % 100;
+                    parameters = new int[] { (int)IntCode[pointer] / 100 % 10, (int)IntCode[pointer] / 1000 % 10, (int)IntCode[pointer] / 10000 % 10};
                 } else
                 {
                     opcode = cur;
@@ -75,7 +95,7 @@ namespace adventofcode
                         pointer += 4;
                         break;
                     case 3:
-                        Input();
+                        Input(parameters);
                         if(exitCode == 3) { return; }
                         pointer += 2;
                         break;
@@ -118,7 +138,7 @@ namespace adventofcode
         private void AdjustRelativeBase(int[] parameters)
         {
             int[] values = GetValues(parameters);
-            relativeBase = IntCode[values[0]];
+            relativeBase += (int) IntCode[values[0]];
         }
 
         private void Equals(int[] parameters)
@@ -136,13 +156,13 @@ namespace adventofcode
         private void JumpIfTrue(int[] parameters)
         {
             int[] values = GetValues(parameters);
-            pointer = IntCode[values[0]] != 0 ? IntCode[values[1]] - 3 : pointer;
+            pointer = IntCode[values[0]] != 0 ? (int) IntCode[values[1]] - 3 : pointer;
         }
 
         private void JumpIfFalse(int[] parameters)
         {
             int[] values = GetValues(parameters);
-            pointer = IntCode[values[0]] == 0 ? IntCode[values[1]] - 3 : pointer;
+            pointer = IntCode[values[0]] == 0 ? (int) IntCode[values[1]] - 3 : pointer;
         }
 
         private void Output(int[] parameters)
@@ -150,28 +170,26 @@ namespace adventofcode
             int[] values = GetValues(parameters);
             output = IntCode[values[0]];
             AddHistory(output);
-            //Console.WriteLine("System: [OUTPUT]:" + IntCode[values[0]]);
         }
 
-        private void AddHistory(int output)
+        private void AddHistory(long output)
         {
-            List<int> list = outputHistory.ToList();
+            List<long> list = outputHistory.ToList();
             list.Add(output);
             outputHistory = list.ToArray();
         }
 
-        private void Input()
+        private void Input(int[] parameters)
         {
-            int input;
+            int[] values = GetValues(parameters);
+            long input;
             if (inputs.Length > 0)
             {
                 input = inputs[0];
                 inputs = inputs.Skip(1).ToArray();
-                IntCode[IntCode[pointer + 1]] = input;
+                IntCode[values[0]] = input;
             } else
             {
-                //Console.Write("SYSTEM: [INPUT]: ");
-                //input = Int32.Parse(Console.ReadLine());
                 exitCode = 3;
             }
         }
@@ -195,7 +213,18 @@ namespace adventofcode
             {
                 try
                 {
-                    values[i] = parameters[i] == 0 ? IntCode[pointer + i + 1] : pointer + i + 1;
+                    switch (parameters[i])
+                    {
+                        case 0:
+                            values[i] = (int) IntCode[pointer + i + 1];
+                            break;
+                        case 1:
+                            values[i] = pointer + i + 1;
+                            break;
+                        case 2:
+                            values[i] = relativeBase + (int) IntCode[pointer + i + 1];
+                            break;
+                    }
                 } catch (IndexOutOfRangeException)
                 {
                     Console.WriteLine("Value was not inside the program code. [INDEX]: {0}", pointer + i + 1);
