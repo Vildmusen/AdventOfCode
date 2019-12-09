@@ -8,28 +8,22 @@ namespace adventofcode
 {
     class Computer
     {
-        string[] file;
-
-        long[] IntCode;
-        long output;
-        long[] outputHistory = new long[0];
-        long[] inputs;
-        
-        int pointer;
-        int relativeBase = 0;
-        int memSpace = 2000000;
-        
-        public int name;
-        public int exitCode;
-        bool running = true;
-
+        public long Output { get; set; }
+        public int Name { get; set; }
+        private long[] IntCode;
+        private long[] OutputHistory = new long[0];
+        private long[] Inputs;
+        private int pointer;
+        private int relativeBase = 0;
+        private int memSpace = 2000000;
+        private int exitCode;
         public void Start(string day)
         {
-            file = Utils.ReadFromFile(day);
+            Reset(day);
         }
-        public void Reset()
+        public void Reset(string day)
         {
-            IntCode = Utils.StringToLongList(file);
+            IntCode = Utils.StringToLongList(Utils.ReadFromFile(day));
             int mem = memSpace - IntCode.Length;
             List<long> temp = IntCode.ToList();
             while (mem > 0)
@@ -40,33 +34,22 @@ namespace adventofcode
             IntCode = temp.ToArray();
             pointer = 0;
         }
-
-        public long ReadOutput()
-        {
-            return output;
-        }
-
         public void PrintOutPut()
         {
-            foreach(long l in outputHistory)
-            {
-                Console.Write(l + ": ");
-            }
+            foreach(long l in OutputHistory) { Console.Write(l + ": "); }
         }
-
         public long ReadValueAt(int address)
         {
             return IntCode[address];
         }
-
         public void Run(long[] inputs)
         {
-            this.inputs = inputs;
+            Inputs = inputs;
             Run();
         }
-        public void Run()
+        private void Run()
         {
-            running = true;
+            bool running = true;
             exitCode = 0;
             while (running)
             {
@@ -82,45 +65,45 @@ namespace adventofcode
                     opcode = cur;
                     parameters = new int[] { 0,0,0 };
                 }
-
+                int[] values = GetValues(parameters);
                 //Console.WriteLine("System[" + name + "]: [OPCODE]:{0} [ADRESS]:{1} [PARAMS]:{2} {3} {4}", opcode, pointer, parameters[0], parameters[1], parameters[2]);
                 switch (opcode)
                 {
                     case 1:
-                        Add(parameters);
+                        Add(values);
                         pointer += 4;
                         break;
                     case 2:
-                        Multiply(parameters);
+                        Multiply(values);
                         pointer += 4;
                         break;
                     case 3:
-                        Input(parameters);
+                        Input(values);
                         if(exitCode == 3) { return; }
                         pointer += 2;
                         break;
                     case 4:
-                        Output(parameters);
+                        SetOutput(values);
                         pointer += 2;
                         break;
                     case 5:
-                        JumpIfTrue(parameters);
+                        JumpIfTrue(values);
                         pointer += 3;
                         break;
                     case 6:
-                        JumpIfFalse(parameters);
+                        JumpIfFalse(values);
                         pointer += 3;
                         break;
                     case 7:
-                        LessThan(parameters);
+                        LessThan(values);
                         pointer += 4;
                         break;
                     case 8:
-                        Equals(parameters);
+                        Equals(values);
                         pointer += 4;
                         break;
                     case 9:
-                        AdjustRelativeBase(parameters);
+                        AdjustRelativeBase(values);
                         pointer += 2;
                         break;
                     case 99:
@@ -128,110 +111,82 @@ namespace adventofcode
                         running = false;
                         break;
                     default:
-                        running = false;
                         Console.WriteLine("System: [ERROR]: Unknown opcode, exiting");
+                        running = false;
                         break;
                 }
             }
         }
-
         private void AdjustRelativeBase(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            relativeBase += (int) IntCode[values[0]];
+            relativeBase += (int) IntCode[parameters[0]];
         }
-
         private void Equals(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            IntCode[values[2]] = IntCode[values[0]] == IntCode[values[1]] ? 1 : 0;
+            IntCode[parameters[2]] = IntCode[parameters[0]] == IntCode[parameters[1]] ? 1 : 0;
         }
-
         private void LessThan(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            IntCode[values[2]] = IntCode[values[0]] < IntCode[values[1]] ? 1 : 0;
+            IntCode[parameters[2]] = IntCode[parameters[0]] < IntCode[parameters[1]] ? 1 : 0;
         }
-
         private void JumpIfTrue(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            pointer = IntCode[values[0]] != 0 ? (int) IntCode[values[1]] - 3 : pointer;
+            pointer = IntCode[parameters[0]] != 0 ? (int) IntCode[parameters[1]] - 3 : pointer;
         }
-
         private void JumpIfFalse(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            pointer = IntCode[values[0]] == 0 ? (int) IntCode[values[1]] - 3 : pointer;
+            pointer = IntCode[parameters[0]] == 0 ? (int) IntCode[parameters[1]] - 3 : pointer;
         }
-
-        private void Output(int[] parameters)
+        private void SetOutput(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            output = IntCode[values[0]];
-            AddHistory(output);
+            Output = IntCode[parameters[0]];
+            AddHistory(Output);
         }
-
-        private void AddHistory(long output)
-        {
-            List<long> list = outputHistory.ToList();
-            list.Add(output);
-            outputHistory = list.ToArray();
-        }
-
         private void Input(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            long input;
-            if (inputs.Length > 0)
+            if (Inputs.Length > 0)
             {
-                input = inputs[0];
-                inputs = inputs.Skip(1).ToArray();
-                IntCode[values[0]] = input;
+                IntCode[parameters[0]] = Inputs[0];
+                Inputs = Inputs.Skip(1).ToArray();
             } else
             {
+                Console.WriteLine("Expected input but got nothing.");
                 exitCode = 3;
             }
         }
-
         private void Add(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            IntCode[values[2]] = IntCode[values[1]] + IntCode[values[0]];
+            IntCode[parameters[2]] = IntCode[parameters[1]] + IntCode[parameters[0]];
         }
-
         private void Multiply(int[] parameters)
         {
-            int[] values = GetValues(parameters);
-            IntCode[values[2]] = IntCode[values[1]] * IntCode[values[0]];
+            IntCode[parameters[2]] = IntCode[parameters[1]] * IntCode[parameters[0]];
         }
-
         public int[] GetValues(int[] parameters)
         {
             int[] values = new int[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                try
+                switch (parameters[i])
                 {
-                    switch (parameters[i])
-                    {
-                        case 0:
-                            values[i] = (int) IntCode[pointer + i + 1];
-                            break;
-                        case 1:
-                            values[i] = pointer + i + 1;
-                            break;
-                        case 2:
-                            values[i] = relativeBase + (int) IntCode[pointer + i + 1];
-                            break;
-                    }
-                } catch (IndexOutOfRangeException)
-                {
-                    Console.WriteLine("Value was not inside the program code. [INDEX]: {0}", pointer + i + 1);
+                    case 0:
+                        values[i] = (int) IntCode[pointer + i + 1];
+                        break;
+                    case 1:
+                        values[i] = pointer + i + 1;
+                        break;
+                    case 2:
+                        values[i] = relativeBase + (int) IntCode[pointer + i + 1];
+                        break;
                 }
             }
             return values;
         }
-
+        private void AddHistory(long output)
+        {
+            List<long> list = OutputHistory.ToList();
+            list.Add(output);
+            OutputHistory = list.ToArray();
+        }
     }
 }

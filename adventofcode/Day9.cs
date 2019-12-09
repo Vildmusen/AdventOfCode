@@ -12,7 +12,6 @@ namespace adventofcode
         {
             Computer c = new Computer();
             c.Start("9");
-            c.Reset();
             c.Run(new long[] { 2 });
             c.PrintOutPut();
         }
