@@ -15,7 +15,7 @@ namespace adventofcode
         private long[] Inputs;
         private int pointer;
         private int relativeBase = 0;
-        private int exitCode;
+        public int exitCode;
         public void Start(string day)
         {
             Reset(day);
@@ -36,6 +36,10 @@ namespace adventofcode
         public void PrintOutPut()
         {
             foreach(long l in OutputHistory) { Console.Write(l + ": "); }
+        }
+        public long GetOutPutAt(int index)
+        {
+            return OutputHistory[index];
         }
         public long ReadValueAt(int address)
         {
@@ -149,7 +153,7 @@ namespace adventofcode
                 Inputs = Inputs.Skip(1).ToArray();
             } else
             {
-                Console.WriteLine("Expected input but got nothing.");
+                //Console.WriteLine("Expected input but got nothing.");
                 exitCode = 3;
             }
         }
@@ -184,7 +188,7 @@ namespace adventofcode
         private void AddHistory(long output)
         {
             List<long> list = OutputHistory.ToList();
-            list.Add(output);
+            list.Insert(0, output);
             OutputHistory = list.ToArray();
         }
     }
