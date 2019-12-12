@@ -15,7 +15,6 @@ namespace adventofcode
         private long[] Inputs;
         private int pointer;
         private int relativeBase = 0;
-        private int memSpace = 2000000;
         private int exitCode;
         public void Start(string day)
         {
@@ -24,7 +23,7 @@ namespace adventofcode
         public void Reset(string day)
         {
             IntCode = Utils.StringToLongList(Utils.ReadFromFile(day));
-            int mem = memSpace - IntCode.Length;
+            int mem = 2000000 - IntCode.Length;
             List<long> temp = IntCode.ToList();
             while (mem > 0)
             {
