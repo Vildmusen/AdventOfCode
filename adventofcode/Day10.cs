@@ -10,19 +10,26 @@ namespace adventofcode
     {
         string[] input;
         string values;
-        int sizeX = 10;
-        int sizeY = 10;
+        int sizeX = 36;
+        int sizeY = 36;
         List<Coordinat> AsteroidCoords = new List<Coordinat>();
-        
+        Coordinat best;
+        List<double> angles = new List<double>();
+        List<double> BestAngles = new List<double>();
+
+
         public struct Coordinat
         {
             public int x;
             public int y;
+            public int AsteroidsInSight;
+            public double Angle;
 
             public override string ToString()
             {
-                return "(" + x + ", " + y + ")";
+                return "(" + x + ", " + y + ") - " + Angle;
             }
+
         }
 
         public void Start()
@@ -31,26 +38,89 @@ namespace adventofcode
 
             getValues();
             GetAsteroidCoordinates();
-            CalculateBestPosition();
+            best = CalculateBestPosition();
+            Console.WriteLine(best);
 
+            Console.WriteLine(DestroyAsteroids());
+        }
+
+        private Coordinat DestroyAsteroids()
+        {
+            int count = 0;
+            double currentAngle = 0;
+            Coordinat current = new Coordinat();
+            List<int> ToDestroy = new List<int>();
+            for (int i = 0; i < AsteroidCoords.Count; i++)
+            {
+                AsteroidCoords[i] = new Coordinat() { x = AsteroidCoords[i].x, y = AsteroidCoords[i].y, Angle = BestAngles[i] };
+            }
+            AsteroidCoords = AsteroidCoords.OrderByDescending(x => x.Angle).ToList();
+            while(AsteroidCoords.Count > 0)
+            {
+                for (int i = 0; i < AsteroidCoords.Count; i++)
+                {
+                    if (AsteroidCoords[i].Angle == currentAngle)
+                    {
+                        ToDestroy.Add(i);
+                    }
+                }
+                if(ToDestroy.Count > 0)
+                {
+                    count++;
+                    int index = FindClosest(ToDestroy);
+                    ToDestroy.Clear();
+                    current = AsteroidCoords[index];
+                    Console.WriteLine("[" + count + "] ima bout to blow up " + current + " at angle " + currentAngle);
+                    AsteroidCoords.RemoveAt(index);
+                }
+                currentAngle = currentAngle == -180 ? 180 : GetNextAngle(currentAngle);
+            }
+            return current;
+        }
+
+        private double GetNextAngle(double current)
+        {
             foreach(Coordinat c in AsteroidCoords)
             {
-                Console.WriteLine(c);
+                if(c.Angle < current)
+                {
+                    return c.Angle;
+                }
             }
+            return -180;
+        }
+
+        private int FindClosest(List<int> toDestroy)
+        {
+            int closestIndex = 0;
+            int curClosestDistance = int.MaxValue;
+            foreach(int i in toDestroy)
+            {
+                Coordinat c = AsteroidCoords[i];
+                int distance = Math.Abs(c.x - best.x) + Math.Abs(c.y - best.y);
+                if (distance < curClosestDistance && distance > 0)
+                {
+                    curClosestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
         }
 
         private Coordinat CalculateBestPosition()
         {
             int best = 0;
             Coordinat bestCoord = new Coordinat { x = 0, y = 0 };
-            int temp = 0;
-            foreach(Coordinat c in AsteroidCoords)
+            int temp;
+            for (int i = 0; i < AsteroidCoords.Count; i++)
             {
-                temp = CalculalteAsteroidsInSight(c);
-                if(temp > best)
+                temp = CalculalteAsteroidsInSight(AsteroidCoords[i]);
+                AsteroidCoords[i] = new Coordinat() { x = AsteroidCoords[i].x, y = AsteroidCoords[i].y, AsteroidsInSight = temp };
+                if (temp >= best)
                 {
                     best = temp;
-                    bestCoord = c;
+                    bestCoord = AsteroidCoords[i];
+                    BestAngles = angles;
                 }
             }
             return bestCoord;
@@ -58,17 +128,14 @@ namespace adventofcode
 
         private int CalculalteAsteroidsInSight(Coordinat current)
         {
-            int count = 0;
+            angles = new List<double>();
             foreach(Coordinat c in AsteroidCoords)
             {
                 int deltaX = current.x - c.x;
                 int deltaY = current.y - c.y;
-                while(deltaX != 0 && deltaY != 0)
-                {
-                    
-                }
+                angles.Add(Math.Atan2(deltaX, deltaY) * 180 / Math.PI);
             }
-            return count;
+            return angles.Distinct().Count();
         }
 
         private void getValues()
@@ -92,7 +159,7 @@ namespace adventofcode
                 {
                     if(values[j + (i * sizeY)] == '#')
                     {
-                        AsteroidCoords.Add(new Coordinat() { x = i, y = j });
+                        AsteroidCoords.Add(new Coordinat() { x = j, y = i });
                     }
                 }
             }

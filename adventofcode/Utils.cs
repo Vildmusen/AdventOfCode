@@ -5,15 +5,15 @@ namespace adventofcode
 {
     class Utils
     {
-        //public static string[] ReadFromFile(string day)
-        //{
-        //    return File.ReadAllText("E:\\source\\adventofcode\\resources\\day" + day+"input.txt").Split(',');
-        //}
-
         public static string[] ReadFromFile(string day)
         {
-            return File.ReadAllText("C:\\Users\\vikto\\Documents\\repos\\AdventOfCode\\resources\\day" + day + "input.txt").Split(',');
+            return File.ReadAllText("E:\\source\\adventofcode\\resources\\day" + day + "input.txt").Split(',');
         }
+
+        //public static string[] ReadFromFile(string day)
+        //{
+        //    return File.ReadAllText("C:\\Users\\vikto\\Documents\\repos\\AdventOfCode\\resources\\day" + day + "input.txt").Split(',');
+        //}
 
         public static string[] ReadFromFileV2(string day)
         {
